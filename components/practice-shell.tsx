@@ -8,7 +8,6 @@ import { CommunicationScoreCard } from "@/components/communication-score-card";
 import { FrameworkBreakdown } from "@/components/framework-breakdown";
 import { FrameworkCard } from "@/components/framework-card";
 import { IdealAnswerPanel } from "@/components/ideal-answer-panel";
-import { ImprovementTips } from "@/components/improvement-tips";
 import { MainTakeawayCard } from "@/components/main-takeaway-card";
 import { RecordingPanel } from "@/components/recording-panel";
 import { ThinkingTimer } from "@/components/thinking-timer";
@@ -531,17 +530,16 @@ export function PracticeShell() {
           <div className="stack">
             <div>
               <span className="eyebrow">Feedback</span>
-              <h2>Here is what to fix next.</h2>
+              <h2>Fix one thing. Copy the stronger answer.</h2>
             </div>
             <div className="result-layout">
               <div className="stack">
                 <MainTakeawayCard result={result} />
-                <ImprovementTips result={result} />
+                <FrameworkBreakdown result={result} />
                 <CommunicationScoreCard result={result} />
               </div>
               <div className="stack">
                 <IdealAnswerPanel result={result} />
-                <FrameworkBreakdown result={result} />
                 <TranscriptPanel transcript={result.transcript} />
               </div>
             </div>
