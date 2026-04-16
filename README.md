@@ -14,7 +14,7 @@ Users sign in, get a prompt, see the right structure, answer it, and receive foc
 
 - landing page with a calmer product pitch
 - sign-in and account creation flow
-- email verification step with OTP generation
+- Supabase Auth support for real email/password accounts
 - protected practice flow that starts after sign-in
 - step-based practice experience:
   - setup
@@ -24,7 +24,7 @@ Users sign in, get a prompt, see the right structure, answer it, and receive foc
 - typewriter-style prompt reveal with a delayed thinking timer
 - framework-specific evaluation output
 - progress dashboard tied to the signed-in user
-- Supabase-ready schema for future durable backend storage
+- Supabase-backed progress storage when environment variables are configured
 
 ## Product flow
 
@@ -36,26 +36,27 @@ Users sign in, get a prompt, see the right structure, answer it, and receive foc
 6. The app evaluates structure and communication quality
 7. Progress is saved against that account
 
-## Current auth model
+## Current auth and progress model
 
-This repo currently uses a local account store in the browser for the signed-in experience.
+The app now supports two modes:
 
-What works now:
+Production-ready mode:
 
-- sign in with email and password
-- create account with email verification step
-- unique user tracking ID generation
-- local progress persistence by signed-in account
-- redirect back to practice after successful auth
+- Supabase Auth handles email/password accounts
+- Supabase stores authenticated practice attempts, scores, transcripts, and dashboard progress
+- practice routes attach the user session token when saving progress
+- dashboard progress loads from the authenticated API first
+
+Development fallback:
+
+- if Supabase environment variables are missing, the app falls back to local browser storage
+- local fallback exists only so the app can be tested without external services
+- local fallback should not be used as production auth
 
 Important note:
 
-- OTP generation is implemented
-- cooldown and resend protection are implemented
-- real email delivery is not connected yet
-- in local/dev mode, OTP is surfaced through the app for verification testing
-
-If you want to ship real email verification, the next step is to connect an email provider such as Resend, SendGrid, SMTP, or Supabase Auth email OTP.
+- the old fake OTP sign-up flow is no longer the main sign-in experience
+- real email confirmation/password recovery should be configured inside Supabase Auth settings
 
 ## Tech stack
 
@@ -83,8 +84,7 @@ components/
   framework-*.tsx         Structure + scoring UI
 
 lib/
-  client/progress-store.ts        Local account and progress persistence
-  server/auth-otp-store.ts        OTP generation and resend control
+  client/progress-store.ts        Auth helpers and local development fallback
   evaluation/                     Evaluation logic
   frameworks.ts                   Framework definitions
   topics.ts                       Seeded prompt library
@@ -135,9 +135,9 @@ Without extra environment setup:
 
 - topic generation uses curated local prompts
 - evaluation falls back to deterministic local scoring when OpenAI is not configured
-- auth and progress remain local-browser based
+- auth and progress use the local development fallback
 
-## Supabase readiness
+## Supabase persistence
 
 The repository already includes a Supabase-oriented schema in [supabase/schema.sql](/Volumes/Private%20data/2minSpch/supabase/schema.sql) and seed data in [supabase/seed.sql](/Volumes/Private%20data/2minSpch/supabase/seed.sql).
 
@@ -153,7 +153,13 @@ The schema covers:
 - communication scoring
 - progress snapshot support
 
-The current frontend is intentionally structured so local auth/progress can be replaced with Supabase-backed persistence without redesigning the product flow.
+To use real auth and persistence:
+
+1. Create a Supabase project.
+2. Run [supabase/schema.sql](/Volumes/Private%20data/2minSpch/supabase/schema.sql).
+3. Run [supabase/seed.sql](/Volumes/Private%20data/2minSpch/supabase/seed.sql).
+4. Add `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` to `.env.local`.
+5. Configure Supabase Auth email settings for confirmation and password recovery.
 
 ## Verification
 
@@ -167,7 +173,7 @@ npm run build
 
 ## Next good improvements
 
-- connect OTP to a real email provider
-- move auth and saved progress from local storage to Supabase Auth + database
+- configure Supabase email confirmation templates
+- add password reset from the sign-in screen
 - add real speech-to-text input instead of transcript-first fallback
 - add richer dashboard trends and repeat-practice recommendations

@@ -6,6 +6,8 @@ import {
   PracticeAttemptRecord,
   ProgressSummary
 } from "@/lib/types";
+import { getSupabaseBrowserClient } from "@/lib/supabase/browser";
+import { isSupabaseConfigured } from "@/lib/supabase/config";
 import { average } from "@/lib/utils";
 
 const PROFILE_KEY = "care-speak-ai-profile";
@@ -98,6 +100,48 @@ function setCurrentUser(profile: LocalUserProfile | null) {
   writeJson(PROFILE_KEY, profile);
 }
 
+function mapSupabaseUser(user: {
+  id: string;
+  email?: string;
+  created_at?: string;
+  user_metadata?: { name?: string; display_name?: string };
+}): LocalUserProfile {
+  return {
+    id: user.id,
+    name: user.user_metadata?.name ?? user.user_metadata?.display_name ?? user.email?.split("@")[0] ?? "Speaker",
+    email: user.email ?? "",
+    createdAt: user.created_at ?? new Date().toISOString()
+  };
+}
+
+export function getAuthProviderLabel() {
+  return isSupabaseConfigured() ? "Supabase Auth" : "Local development auth";
+}
+
+export async function getAccessToken() {
+  const supabase = getSupabaseBrowserClient();
+  if (!supabase) {
+    return null;
+  }
+
+  const { data } = await supabase.auth.getSession();
+  return data.session?.access_token ?? null;
+}
+
+export async function getAuthenticatedProfile(): Promise<LocalUserProfile | null> {
+  const supabase = getSupabaseBrowserClient();
+  if (!supabase) {
+    return getCurrentUser();
+  }
+
+  const { data, error } = await supabase.auth.getUser();
+  if (error || !data.user) {
+    return null;
+  }
+
+  return mapSupabaseUser(data.user);
+}
+
 export function getCurrentUser(): LocalUserProfile | null {
   const currentUserId = readJson<string | null>(CURRENT_USER_KEY, null);
   if (!currentUserId) {
@@ -114,6 +158,57 @@ export function getCurrentUser(): LocalUserProfile | null {
 
 export function getLocalProfile(): LocalUserProfile | null {
   return getCurrentUser();
+}
+
+export async function signInAccount(email: string, password: string) {
+  const supabase = getSupabaseBrowserClient();
+  if (!supabase) {
+    return signInLocalAccount(email, password);
+  }
+
+  const { data, error } = await supabase.auth.signInWithPassword({
+    email: email.trim().toLowerCase(),
+    password
+  });
+
+  if (error || !data.user) {
+    return {
+      ok: false as const,
+      message: error?.message ?? "Email or password did not match."
+    };
+  }
+
+  return { ok: true as const, profile: mapSupabaseUser(data.user) };
+}
+
+export async function registerAccount(input: { name: string; email: string; password: string }) {
+  const supabase = getSupabaseBrowserClient();
+  if (!supabase) {
+    return registerLocalAccount(input);
+  }
+
+  const { data, error } = await supabase.auth.signUp({
+    email: input.email.trim().toLowerCase(),
+    password: input.password,
+    options: {
+      data: {
+        name: input.name.trim()
+      }
+    }
+  });
+
+  if (error || !data.user) {
+    return {
+      ok: false as const,
+      message: error?.message ?? "We could not create that account."
+    };
+  }
+
+  return {
+    ok: true as const,
+    profile: mapSupabaseUser(data.user),
+    needsEmailConfirmation: !data.session
+  };
 }
 
 export function registerLocalAccount(input: { name: string; email: string; password: string }) {
@@ -158,6 +253,15 @@ export function signInLocalAccount(email: string, password: string) {
 
 export function signOutLocalAccount() {
   setCurrentUser(null);
+}
+
+export async function signOutAccount() {
+  const supabase = getSupabaseBrowserClient();
+  if (supabase) {
+    await supabase.auth.signOut();
+  }
+
+  signOutLocalAccount();
 }
 
 export function clearLocalProfile() {

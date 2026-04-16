@@ -16,9 +16,9 @@ import { TopicPromptCard } from "@/components/topic-prompt-card";
 import { TranscriptPanel } from "@/components/transcript-panel";
 import {
   addLocalAttempt,
-  getCurrentUser,
-  getGuestKey,
-  getLocalProfile
+  getAccessToken,
+  getAuthenticatedProfile,
+  getGuestKey
 } from "@/lib/client/progress-store";
 import { FRAMEWORK_DEFINITIONS } from "@/lib/frameworks";
 import {
@@ -42,6 +42,7 @@ export function PracticeShell() {
   const [guestKey, setGuestKey] = useState("");
   const [profileReady, setProfileReady] = useState(false);
   const [isSignedIn, setIsSignedIn] = useState(false);
+  const [profileId, setProfileId] = useState<string | null>(null);
   const [mode, setMode] = useState<PracticeMode>("auto");
   const [difficulty, setDifficulty] = useState<Difficulty>("medium");
   const [frameworkOverride, setFrameworkOverride] = useState<FrameworkKey>("CARE");
@@ -56,8 +57,11 @@ export function PracticeShell() {
 
   useEffect(() => {
     setGuestKey(getGuestKey());
-    setIsSignedIn(Boolean(getCurrentUser()));
-    setProfileReady(true);
+    getAuthenticatedProfile().then((profile) => {
+      setIsSignedIn(Boolean(profile));
+      setProfileId(profile?.id ?? null);
+      setProfileReady(true);
+    });
   }, []);
 
   const activeFramework = useMemo(() => {
@@ -74,6 +78,7 @@ export function PracticeShell() {
     setResult(null);
 
     try {
+      const accessToken = await getAccessToken();
       const response = await fetch("/api/topic/generate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -97,7 +102,10 @@ export function PracticeShell() {
 
       await fetch("/api/practice/session", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {})
+        },
         body: JSON.stringify({
           guestKey,
           mode,
@@ -145,7 +153,8 @@ export function PracticeShell() {
         setStage("feedback");
       });
 
-      const ownerKey = getLocalProfile()?.id ?? guestKey;
+      const accessToken = await getAccessToken();
+      const ownerKey = profileId ?? guestKey;
       addLocalAttempt(ownerKey, {
         topicId: topic.id,
         topicTitle: topic.title,
@@ -157,7 +166,10 @@ export function PracticeShell() {
 
       await fetch("/api/practice/session", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {})
+        },
         body: JSON.stringify({
           guestKey,
           mode,

@@ -4,7 +4,12 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 
 import { ProgressCharts } from "@/components/progress-charts";
-import { getGuestKey, getLocalProfile, getProgressSummaryForOwner } from "@/lib/client/progress-store";
+import {
+  getAccessToken,
+  getAuthenticatedProfile,
+  getGuestKey,
+  getProgressSummaryForOwner
+} from "@/lib/client/progress-store";
 import { LocalUserProfile, ProgressSummary } from "@/lib/types";
 
 export default function DashboardPage() {
@@ -12,10 +17,27 @@ export default function DashboardPage() {
   const [profile, setProfile] = useState<LocalUserProfile | null>(null);
 
   useEffect(() => {
-    const localProfile = getLocalProfile();
-    const ownerKey = localProfile?.id ?? getGuestKey();
-    setProfile(localProfile);
-    setSummary(getProgressSummaryForOwner(ownerKey));
+    async function loadProgress() {
+      const authenticatedProfile = await getAuthenticatedProfile();
+      setProfile(authenticatedProfile);
+
+      const accessToken = await getAccessToken();
+      if (accessToken) {
+        const response = await fetch("/api/progress/summary", {
+          headers: { Authorization: `Bearer ${accessToken}` }
+        });
+
+        if (response.ok) {
+          setSummary((await response.json()) as ProgressSummary);
+          return;
+        }
+      }
+
+      const ownerKey = authenticatedProfile?.id ?? getGuestKey();
+      setSummary(getProgressSummaryForOwner(ownerKey));
+    }
+
+    loadProgress();
   }, []);
 
   if (!summary) {
@@ -35,8 +57,8 @@ export default function DashboardPage() {
             <h1 className="page-title">See what is getting stronger and what needs more reps.</h1>
             <p className="section-copy">This page should answer three things fast: how much you practiced, what is improving, and what to work on next.</p>
             <div className="pill-row">
-              <span className="pill">{profile ? `Signed in as ${profile.name}` : "Guest mode"}</span>
-              <span className="pill">{profile ? `Tracker ${profile.id}` : "Practice is only stored on this device"}</span>
+              <span className="pill">{profile ? `Signed in as ${profile.name}` : "Not signed in"}</span>
+              <span className="pill">{profile ? "Progress saved to your account" : "Sign in before practice"}</span>
             </div>
           </div>
           <div className="header-actions">

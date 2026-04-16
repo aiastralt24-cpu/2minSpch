@@ -42,7 +42,7 @@ create table if not exists public.practice_sessions (
   mode text not null,
   difficulty text not null,
   framework text not null references public.frameworks(key),
-  topic_id uuid not null references public.topics(id),
+  topic_id text not null,
   status text not null check (status in ('topic_generated', 'completed')),
   created_at timestamptz not null default timezone('utc', now()),
   updated_at timestamptz not null default timezone('utc', now())
@@ -53,7 +53,8 @@ create table if not exists public.practice_attempts (
   session_id uuid references public.practice_sessions(id) on delete set null,
   user_id uuid references public.profiles(id) on delete cascade,
   guest_key text,
-  topic_id uuid not null references public.topics(id),
+  topic_id text not null,
+  topic_title text not null,
   framework text not null references public.frameworks(key),
   transcript text not null,
   raw_evaluation jsonb not null,
@@ -131,10 +132,34 @@ using (
   )
 );
 
+create policy "component scores are inserted by owner"
+on public.attempt_component_scores
+for insert
+with check (
+  exists (
+    select 1
+    from public.practice_attempts
+    where public.practice_attempts.id = attempt_component_scores.attempt_id
+      and public.practice_attempts.user_id = auth.uid()
+  )
+);
+
 create policy "communication scores belong to owner"
 on public.attempt_communication_scores
 for select
 using (
+  exists (
+    select 1
+    from public.practice_attempts
+    where public.practice_attempts.id = attempt_communication_scores.attempt_id
+      and public.practice_attempts.user_id = auth.uid()
+  )
+);
+
+create policy "communication scores are inserted by owner"
+on public.attempt_communication_scores
+for insert
+with check (
   exists (
     select 1
     from public.practice_attempts
