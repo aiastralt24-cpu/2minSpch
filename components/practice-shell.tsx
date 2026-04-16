@@ -359,8 +359,7 @@ export function PracticeShell() {
         <div className="score-footer">
           <div>
             <span className="eyebrow">Practice</span>
-            <h1 className="page-title">One clear step at a time.</h1>
-            <p className="section-copy">Pick a prompt, speak your answer, then get one clear direction for the next try.</p>
+            <h1 className="page-title">Practice</h1>
           </div>
           <div className="header-actions">
             <Link className="button button-secondary desktop-inline-button" href="/dashboard">
@@ -374,20 +373,20 @@ export function PracticeShell() {
 
         <div className="stage-line">
           <span className="eyebrow">{stageLabel(stage)}</span>
-          <p className="muted">
-            {stage === "setup" && "Choose what you want to practice."}
-            {stage === "prompt" && "Read the prompt. The timer starts after it finishes."}
-            {stage === "speaking" && "Say your answer out loud or type it below."}
-            {stage === "feedback" && "Use the takeaway to make the next answer stronger."}
-          </p>
+          {stage !== "setup" ? (
+            <p className="muted">
+              {stage === "prompt" && "Read the prompt. The timer starts after it finishes."}
+              {stage === "speaking" && "Say your answer out loud or type it below."}
+              {stage === "feedback" && "Use the takeaway to make the next answer stronger."}
+            </p>
+          ) : null}
         </div>
 
         {stage === "setup" ? (
           <section className="glass-panel practice-setup-card">
             <div className="setup-header">
-              <span className="eyebrow">Choose your round</span>
-              <h2>What do you want to practice?</h2>
-              <p className="muted">Choose the kind of practice, how hard it should feel, and how long you want to think.</p>
+              <h2>Choose your round</h2>
+              <p className="muted">Goal, difficulty, and thinking time.</p>
             </div>
 
             <div className="guided-setup">
