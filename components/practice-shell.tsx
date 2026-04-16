@@ -343,7 +343,7 @@ export function PracticeShell() {
           <span className="eyebrow">{stageLabel(stage)}</span>
           <p className="muted">
             {stage === "setup" && "Choose what you want to practice."}
-            {stage === "prompt" && "Read the prompt and decide your opening line."}
+            {stage === "prompt" && "Read the prompt. The timer starts after it finishes."}
             {stage === "speaking" && "Say your answer out loud or type it below."}
             {stage === "feedback" && "Use the takeaway to make the next answer stronger."}
           </p>
@@ -432,20 +432,13 @@ export function PracticeShell() {
 
         {topic && stage === "prompt" ? (
           <div className="stack">
-            <TopicPromptCard topic={topic} animate onAnimationComplete={() => setPromptRevealComplete(true)} />
-            <section className="glass-panel">
-              <div className="score-footer">
-                <div>
-                  <span className="eyebrow">Take 30 seconds</span>
-                  <p className="muted">Let the prompt finish, then use the next few seconds to decide your opening line.</p>
-                </div>
-              </div>
-              <ThinkingTimer seconds={30} isActive={promptRevealComplete} />
-            </section>
+            <TopicPromptCard topic={topic} animate onAnimationComplete={() => setPromptRevealComplete(true)}>
+              <ThinkingTimer seconds={30} isActive={promptRevealComplete} compact />
+            </TopicPromptCard>
             <details className="glass-panel detail-panel">
               <summary className="detail-summary">
-                <span className="eyebrow">Need help with this structure?</span>
-                <span className="muted">See the speaking guide</span>
+                <span className="eyebrow">Need a structure?</span>
+                <span className="muted">Open guide</span>
               </summary>
               <div className="detail-body">
                 <FrameworkCard framework={activeFramework} />

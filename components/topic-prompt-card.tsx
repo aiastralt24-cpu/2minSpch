@@ -1,16 +1,19 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import type { ReactNode } from "react";
 
 import { Topic } from "@/lib/types";
 
 export function TopicPromptCard({
   topic,
   animate = false,
+  children,
   onAnimationComplete
 }: {
   topic: Topic;
   animate?: boolean;
+  children?: ReactNode;
   onAnimationComplete?: () => void;
 }) {
   const words = useMemo(() => topic.title.split(" "), [topic.title]);
@@ -66,9 +69,9 @@ export function TopicPromptCard({
   const renderedText = animate ? words.slice(0, visibleWords).join(" ") : topic.title;
 
   return (
-    <section className="glass-panel">
+    <section className="glass-panel prompt-focus-card">
       <span className="eyebrow">Your prompt</span>
-      <h3 className={animate && visibleWords < words.length ? "typewriter-line" : undefined}>
+      <h3 className={`prompt-question ${animate && visibleWords < words.length ? "typewriter-line" : ""}`}>
         {renderedText}
         {animate && visibleWords < words.length ? <span className="typewriter-caret" aria-hidden="true" /> : null}
       </h3>
@@ -76,7 +79,7 @@ export function TopicPromptCard({
         <span className="pill">{topic.category.replace("_", " ")}</span>
         <span className="pill">{topic.difficulty}</span>
       </div>
-      <p className="muted">Take a breath, decide your opening line, then move through the structure one part at a time.</p>
+      {children ? <div className="prompt-card-footer">{children}</div> : null}
     </section>
   );
 }

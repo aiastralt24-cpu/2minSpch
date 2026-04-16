@@ -4,10 +4,12 @@ import { useEffect, useState } from "react";
 
 export function ThinkingTimer({
   seconds = 15,
-  isActive = true
+  isActive = true,
+  compact = false
 }: {
   seconds?: number;
   isActive?: boolean;
+  compact?: boolean;
 }) {
   const [timeLeft, setTimeLeft] = useState(seconds);
 
@@ -33,15 +35,23 @@ export function ThinkingTimer({
     return () => window.clearInterval(interval);
   }, [isActive]);
 
-  return (
-    <section className="glass-panel">
+  const timerContent = (
+    <>
       <span className="eyebrow">Thinking time</span>
       <div className="big-number">{timeLeft}s</div>
       <p className="muted">
-        {isActive
-          ? "Sketch your structure now. Your first sentence should sound calm and clear."
-          : "Listen to the full prompt first. The timer will begin as soon as it finishes."}
+        {isActive ? "Prepare your first sentence." : "Timer starts after the prompt finishes."}
       </p>
+    </>
+  );
+
+  if (compact) {
+    return <div className="timer-compact">{timerContent}</div>;
+  }
+
+  return (
+    <section className="glass-panel">
+      {timerContent}
     </section>
   );
 }
