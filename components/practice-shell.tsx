@@ -37,6 +37,82 @@ function stageLabel(stage: PracticeStage) {
   return "Step 4 of 4";
 }
 
+const practiceModeOptions: {
+  value: PracticeMode;
+  title: string;
+  description: string;
+}[] = [
+  {
+    value: "auto",
+    title: "Pick for me",
+    description: "Best when you just want to start."
+  },
+  {
+    value: "general",
+    title: "Think clearly",
+    description: "Explain ideas with calm structure."
+  },
+  {
+    value: "opinion",
+    title: "Share an opinion",
+    description: "Make a point and support it."
+  },
+  {
+    value: "interview",
+    title: "Interview answer",
+    description: "Tell a focused work story."
+  },
+  {
+    value: "manual_framework",
+    title: "Choose structure",
+    description: "Pick CARE, PREP, or STAR yourself."
+  }
+];
+
+const difficultyOptions: {
+  value: Difficulty;
+  title: string;
+  description: string;
+}[] = [
+  {
+    value: "easy",
+    title: "Easy",
+    description: "Warm up with a simple prompt."
+  },
+  {
+    value: "medium",
+    title: "Medium",
+    description: "Balanced daily practice."
+  },
+  {
+    value: "hard",
+    title: "Hard",
+    description: "Push your thinking."
+  }
+];
+
+const frameworkOptions: {
+  value: FrameworkKey;
+  title: string;
+  description: string;
+}[] = [
+  {
+    value: "CARE",
+    title: "CARE",
+    description: "Context, answer, reason, example."
+  },
+  {
+    value: "PREP",
+    title: "PREP",
+    description: "Point, reason, example, point."
+  },
+  {
+    value: "STAR",
+    title: "STAR",
+    description: "Situation, task, action, result."
+  }
+];
+
 export function PracticeShell() {
   const router = useRouter();
   const [guestKey, setGuestKey] = useState("");
@@ -276,67 +352,76 @@ export function PracticeShell() {
         {stage === "setup" ? (
           <section className="glass-panel practice-setup-card">
             <div className="setup-header">
-              <span className="eyebrow">Choose what to practice</span>
-              <p className="muted">Pick the kind of prompt you want, then start your round.</p>
+              <span className="eyebrow">Choose your round</span>
+              <h2>What do you want to practice?</h2>
+              <p className="muted">Choose a speaking goal, choose the challenge level, then get your prompt.</p>
             </div>
-            <div className="setup-grid compact-setup-grid">
-              <div className="field-card">
-                <label className="label" htmlFor="mode">
-                  Prompt type
-                </label>
-                <select
-                  id="mode"
-                  className="select"
-                  value={mode}
-                  onChange={(event) => setMode(event.target.value as PracticeMode)}
-                >
-                  <option value="auto">Pick for me</option>
-                  <option value="general">General thinking</option>
-                  <option value="opinion">Opinion</option>
-                  <option value="interview">Interview</option>
-                  <option value="manual_framework">Choose a structure myself</option>
-                </select>
-                <p className="field-note">Best if you want the app to choose the right structure for the topic.</p>
+
+            <div className="guided-setup">
+              <div className="choice-section">
+                <div>
+                  <span className="choice-kicker">1</span>
+                  <h3>I want to...</h3>
+                </div>
+                <div className="choice-grid mode-choice-grid">
+                  {practiceModeOptions.map((option) => (
+                    <button
+                      key={option.value}
+                      type="button"
+                      className={`choice-chip ${mode === option.value ? "choice-chip-active" : ""}`}
+                      onClick={() => setMode(option.value)}
+                    >
+                      <strong>{option.title}</strong>
+                      <span>{option.description}</span>
+                    </button>
+                  ))}
+                </div>
               </div>
 
-              <div className="field-card">
-                <label className="label" htmlFor="difficulty">
-                  Difficulty
-                </label>
-                <select
-                  id="difficulty"
-                  className="select"
-                  value={difficulty}
-                  onChange={(event) => setDifficulty(event.target.value as Difficulty)}
-                >
-                  <option value="easy">Easy</option>
-                  <option value="medium">Medium</option>
-                  <option value="hard">Hard</option>
-                </select>
-                <p className="field-note">Medium gives the smoothest first practice round.</p>
+              <div className="choice-section">
+                <div>
+                  <span className="choice-kicker">2</span>
+                  <h3>Make it...</h3>
+                </div>
+                <div className="choice-grid difficulty-choice-grid">
+                  {difficultyOptions.map((option) => (
+                    <button
+                      key={option.value}
+                      type="button"
+                      className={`choice-chip ${difficulty === option.value ? "choice-chip-active" : ""}`}
+                      onClick={() => setDifficulty(option.value)}
+                    >
+                      <strong>{option.title}</strong>
+                      <span>{option.description}</span>
+                    </button>
+                  ))}
+                </div>
               </div>
 
               {mode === "manual_framework" ? (
-                <div className="field-card">
-                  <label className="label" htmlFor="framework">
-                    Structure
-                  </label>
-                  <select
-                    id="framework"
-                    className="select"
-                    value={frameworkOverride}
-                    onChange={(event) => setFrameworkOverride(event.target.value as FrameworkKey)}
-                  >
-                    <option value="CARE">CARE</option>
-                    <option value="PREP">PREP</option>
-                    <option value="STAR">STAR</option>
-                  </select>
-                  <p className="field-note">Use this only when you already know which speaking structure you want.</p>
+                <div className="choice-section">
+                  <div>
+                    <span className="choice-kicker">3</span>
+                    <h3>Use this structure</h3>
+                  </div>
+                  <div className="choice-grid difficulty-choice-grid">
+                    {frameworkOptions.map((option) => (
+                      <button
+                        key={option.value}
+                        type="button"
+                        className={`choice-chip ${frameworkOverride === option.value ? "choice-chip-active" : ""}`}
+                        onClick={() => setFrameworkOverride(option.value)}
+                      >
+                        <strong>{option.title}</strong>
+                        <span>{option.description}</span>
+                      </button>
+                    ))}
+                  </div>
                 </div>
               ) : null}
             </div>
 
-            {error ? <p className="muted">{error}</p> : <p className="footer-note">Fastest option: leave it on “Pick for me”.</p>}
+            {error ? <p className="muted">{error}</p> : <p className="footer-note">Not sure? Keep “Pick for me” and Medium.</p>}
             <div className="sticky-action-bar setup-action-bar">
               <button className="button button-primary" onClick={generateTopic} disabled={isLoadingTopic}>
                 {isLoadingTopic ? "Getting prompt..." : "Get prompt"}

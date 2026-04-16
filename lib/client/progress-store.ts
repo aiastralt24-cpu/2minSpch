@@ -7,7 +7,6 @@ import {
   ProgressSummary
 } from "@/lib/types";
 import { getSupabaseBrowserClient } from "@/lib/supabase/browser";
-import { isSupabaseConfigured } from "@/lib/supabase/config";
 import { average } from "@/lib/utils";
 
 const PROFILE_KEY = "care-speak-ai-profile";
@@ -112,10 +111,6 @@ function mapSupabaseUser(user: {
     email: user.email ?? "",
     createdAt: user.created_at ?? new Date().toISOString()
   };
-}
-
-export function getAuthProviderLabel() {
-  return isSupabaseConfigured() ? "Supabase Auth" : "Local development auth";
 }
 
 export async function getAccessToken() {

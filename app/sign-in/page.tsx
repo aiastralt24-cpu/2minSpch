@@ -6,7 +6,6 @@ import { useEffect, useState } from "react";
 
 import {
   getAuthenticatedProfile,
-  getAuthProviderLabel,
   registerAccount,
   signInAccount,
   signOutAccount
@@ -26,10 +25,8 @@ export default function SignInPage() {
   const [password, setPassword] = useState("");
   const [message, setMessage] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [authProvider, setAuthProvider] = useState("Auth");
 
   useEffect(() => {
-    setAuthProvider(getAuthProviderLabel());
     getAuthenticatedProfile().then(setProfile);
   }, []);
 
@@ -160,7 +157,6 @@ export default function SignInPage() {
                     ? "Sign in to start practicing and keep every round in one place."
                     : "Sign in to continue your practice."}
                 </p>
-                <p className="field-note">Using {authProvider}.</p>
 
                 <div className="auth-form-grid">
                   <div className="field-card">
@@ -208,7 +204,6 @@ export default function SignInPage() {
                     ? "Create an account once, then every practice round stays attached to you."
                     : "Create an account to save your speaking progress."}
                 </p>
-                <p className="field-note">Using {authProvider}.</p>
 
                 <div className="auth-form-grid">
                   <div className="field-card">

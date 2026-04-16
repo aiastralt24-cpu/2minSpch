@@ -337,7 +337,8 @@ button {
 }
 
 .practice-setup-card {
-  max-width: 68rem;
+  max-width: 64rem;
+  padding: clamp(1.1rem, 3vw, 2rem);
 }
 
 .compact-setup-grid {
@@ -353,12 +354,104 @@ button {
 .setup-header {
   display: grid;
   gap: 0.45rem;
-  margin-bottom: 1rem;
+  margin-bottom: 1.4rem;
+}
+
+.setup-header h2 {
+  margin: 0;
+  font-size: clamp(2rem, 4vw, 3.2rem);
+  line-height: 0.98;
+  max-width: 11ch;
 }
 
 .setup-header .muted {
   margin: 0;
-  max-width: 30rem;
+  max-width: 34rem;
+}
+
+.guided-setup {
+  display: grid;
+  gap: 1.35rem;
+}
+
+.choice-section {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.choice-section h3 {
+  margin: 0.25rem 0 0;
+  font-size: clamp(1.2rem, 2vw, 1.6rem);
+}
+
+.choice-kicker {
+  display: inline-grid;
+  place-items: center;
+  width: 1.85rem;
+  height: 1.85rem;
+  border-radius: 999px;
+  background: rgba(34, 52, 45, 0.92);
+  color: #fff;
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+.choice-grid {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.mode-choice-grid {
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+}
+
+.difficulty-choice-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.choice-chip {
+  min-height: 7.2rem;
+  border: 1px solid rgba(31, 29, 25, 0.1);
+  border-radius: 22px;
+  background:
+    linear-gradient(145deg, rgba(255, 252, 245, 0.94), rgba(246, 235, 218, 0.72));
+  color: var(--text);
+  padding: 1rem;
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 0.75rem;
+  box-shadow: 0 12px 32px rgba(28, 33, 28, 0.06);
+  transition: border-color 160ms ease, box-shadow 160ms ease, transform 160ms ease, background 160ms ease;
+}
+
+.choice-chip:hover {
+  transform: translateY(-2px);
+  border-color: rgba(31, 29, 25, 0.2);
+  box-shadow: 0 16px 34px rgba(28, 33, 28, 0.1);
+}
+
+.choice-chip strong {
+  font-size: 1.05rem;
+}
+
+.choice-chip span {
+  color: var(--muted);
+  font-size: 0.9rem;
+  line-height: 1.35;
+}
+
+.choice-chip-active {
+  background:
+    linear-gradient(145deg, rgba(34, 52, 45, 0.96), rgba(33, 79, 58, 0.9));
+  color: #fff;
+  border-color: rgba(34, 52, 45, 0.98);
+  box-shadow: 0 18px 42px rgba(28, 33, 28, 0.18);
+}
+
+.choice-chip-active span {
+  color: rgba(255, 255, 255, 0.78);
 }
 
 .field-card {
@@ -668,6 +761,14 @@ button {
     grid-template-columns: 1fr;
   }
 
+  .mode-choice-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .difficulty-choice-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
   .hero {
     gap: 1.6rem;
     padding-top: 1.75rem;
@@ -789,6 +890,21 @@ button {
 
   .poster-grid {
     grid-template-columns: 1fr;
+  }
+
+  .mode-choice-grid,
+  .difficulty-choice-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .choice-chip {
+    min-height: auto;
+    gap: 0.45rem;
+    padding: 0.95rem;
+  }
+
+  .setup-header h2 {
+    max-width: 14ch;
   }
 
   .glass-panel,
