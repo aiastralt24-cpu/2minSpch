@@ -17,35 +17,29 @@ export function TopicPromptCard({
   onAnimationComplete?: () => void;
 }) {
   const words = useMemo(() => topic.title.split(" "), [topic.title]);
-  const [visibleWords, setVisibleWords] = useState(animate ? 0 : words.length);
+  const [activeWordIndex, setActiveWordIndex] = useState(animate ? -1 : words.length);
   const animationRunRef = useRef(0);
   const completionRef = useRef(false);
 
   useEffect(() => {
     if (!animate) {
       completionRef.current = true;
-      setVisibleWords(words.length);
+      setActiveWordIndex(words.length);
       return;
     }
 
     animationRunRef.current += 1;
     const currentRun = animationRunRef.current;
     completionRef.current = false;
-    setVisibleWords(0);
+    setActiveWordIndex(0);
 
     const interval = window.setInterval(() => {
-      setVisibleWords((current) => {
+      setActiveWordIndex((current) => {
         if (animationRunRef.current !== currentRun) {
           return current;
         }
 
-        if (current >= words.length) {
-          window.clearInterval(interval);
-          return current;
-        }
-
-        const next = current + 1;
-        if (next >= words.length) {
+        if (current >= words.length - 1) {
           window.clearInterval(interval);
 
           if (!completionRef.current) {
@@ -54,26 +48,33 @@ export function TopicPromptCard({
               if (animationRunRef.current === currentRun) {
                 onAnimationComplete?.();
               }
-            }, 320);
+            }, 650);
           }
+
+          return words.length;
         }
-        return next;
+
+        return current + 1;
       });
-    }, 280);
+    }, 1000);
 
     return () => {
       window.clearInterval(interval);
     };
   }, [animate, onAnimationComplete, topic.id, words.length]);
 
-  const renderedText = animate ? words.slice(0, visibleWords).join(" ") : topic.title;
-
   return (
     <section className="glass-panel prompt-focus-card">
       <span className="eyebrow">Your prompt</span>
-      <h3 className={`prompt-question ${animate && visibleWords < words.length ? "typewriter-line" : ""}`}>
-        {renderedText}
-        {animate && visibleWords < words.length ? <span className="typewriter-caret" aria-hidden="true" /> : null}
+      <h3 className="prompt-question">
+        {words.map((word, index) => (
+          <span
+            key={`${word}-${index}`}
+            className={animate && activeWordIndex === index ? "prompt-word prompt-word-active" : "prompt-word"}
+          >
+            {word}
+          </span>
+        ))}
       </h3>
       <div className="pill-row">
         <span className="pill">{topic.category.replace("_", " ")}</span>

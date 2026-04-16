@@ -94,13 +94,6 @@ export const SEEDED_TOPICS: Topic[] = [
   }
 ];
 
-const REMIX_PREFIXES = [
-  "Explain briefly",
-  "Imagine you are answering in a coaching session",
-  "Give a concise but thoughtful response to",
-  "Respond as if this came up in a high-stakes conversation"
-];
-
 export function resolveTopicCategory(input: TopicGenerateInput): TopicCategory {
   if (input.category) {
     return input.category;
@@ -145,15 +138,5 @@ export function selectTopic(input: TopicGenerateInput): Topic {
   const freshCandidates = candidates.filter((topic) => !excluded.has(topic.id));
   const pool = freshCandidates.length > 0 ? freshCandidates : candidates;
 
-  return remixTopic(pool[0] ?? SEEDED_TOPICS[0]);
-}
-
-export function remixTopic(topic: Topic): Topic {
-  const hash = topic.title.length % REMIX_PREFIXES.length;
-  const prefix = REMIX_PREFIXES[hash];
-
-  return {
-    ...topic,
-    title: `${prefix}: ${topic.title}`
-  };
+  return pool[0] ?? SEEDED_TOPICS[0];
 }
