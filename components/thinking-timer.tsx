@@ -38,7 +38,10 @@ export function ThinkingTimer({
   const timerContent = (
     <>
       <span className="eyebrow">Thinking time</span>
-      <div className="big-number">{timeLeft}s</div>
+      <div className="big-number timer-number">
+        {timeLeft}
+        <span className="timer-unit">s</span>
+      </div>
       <p className="muted">
         {isActive ? "Prepare your first sentence." : "Timer starts after the prompt finishes."}
       </p>

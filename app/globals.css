@@ -211,6 +211,18 @@ button {
   line-height: 0.9;
 }
 
+.timer-number {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.08em;
+}
+
+.timer-unit {
+  font-size: 0.42em;
+  line-height: 1;
+  color: var(--muted);
+}
+
 .timer-compact .muted {
   max-width: 18rem;
   margin: 0;
