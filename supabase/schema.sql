@@ -27,6 +27,9 @@ create table if not exists public.topics (
   created_at timestamptz not null default timezone('utc', now())
 );
 
+create unique index if not exists topics_title_unique
+on public.topics (title);
+
 create table if not exists public.topic_framework_rules (
   id uuid primary key default gen_random_uuid(),
   topic_category text not null,
@@ -34,6 +37,9 @@ create table if not exists public.topic_framework_rules (
   allow_manual_override boolean not null default true,
   created_at timestamptz not null default timezone('utc', now())
 );
+
+create unique index if not exists topic_framework_rules_category_unique
+on public.topic_framework_rules (topic_category);
 
 create table if not exists public.practice_sessions (
   id uuid primary key default gen_random_uuid(),
