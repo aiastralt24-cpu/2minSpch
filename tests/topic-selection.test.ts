@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { selectTopic } from "@/lib/topics";
+import { selectTopic, TOPIC_BANK } from "@/lib/topics";
 
 describe("topic selection", () => {
   it("maps auto general thinking prompts to CARE", () => {
@@ -20,5 +20,10 @@ describe("topic selection", () => {
       difficulty: "medium"
     });
     expect(topic.framework).toBe("STAR");
+  });
+
+  it("has a large topic bank across frameworks and difficulty levels", () => {
+    expect(TOPIC_BANK.length).toBeGreaterThan(2000);
+    expect(TOPIC_BANK.some((topic) => topic.title.includes("Imagine you are answering"))).toBe(false);
   });
 });

@@ -150,14 +150,71 @@ function starScores(transcript: string): StructuralScore[] {
   ];
 }
 
-function buildIdealAnswer(framework: FrameworkKey): string {
-  const definition = FRAMEWORK_DEFINITIONS[framework];
-  const labels = definition.components.map((component) => component.label).join(" -> ");
-
-  return `${definition.name} outline: ${labels}. Deliver a direct answer, keep each section to 1-2 sentences, and end with a memorable final line.`;
+function stripPromptPrefix(topicTitle?: string) {
+  return topicTitle?.replace(/^[^:]+:\s*/, "").trim();
 }
 
-export function evaluateHeuristically(transcript: string, framework: FrameworkKey): EvaluationResult {
+function buildCareAnswer(topicTitle?: string): string {
+  const prompt = stripPromptPrefix(topicTitle)?.toLowerCase() ?? "";
+
+  if (prompt.includes("lifelong learner")) {
+    return "A strong lifelong learner is someone who stays curious, reflects honestly, and keeps applying what they learn. The key is not just collecting information, but turning feedback and experience into better action. For example, if someone struggles with public speaking, a lifelong learner would practice, ask for feedback, adjust their approach, and try again instead of avoiding it. That is what makes learning a habit, not a one-time activity.";
+  }
+
+  if (prompt.includes("time management")) {
+    return "Time management is important because it gives people control over their day instead of letting tasks control them. When someone plans their time well, they can focus better, reduce stress, and make space for important work instead of only reacting to urgent things. For example, a student who blocks time for study, rest, and revision is more likely to perform consistently than someone who waits until the last minute. Good time management is really about using attention wisely.";
+  }
+
+  if (prompt.includes("feedback")) {
+    return "People should respond to difficult feedback with calm curiosity before defending themselves. Feedback can feel uncomfortable, but it often shows a gap between intention and impact. For example, if a manager says your updates are unclear, the useful response is to ask what would make them clearer and then adjust your next update. That turns criticism into growth instead of conflict.";
+  }
+
+  return "A strong answer starts by setting the context clearly, then gives a direct response, explains why it matters, and makes the idea concrete with an example. The main point is to help the listener understand both your thinking and its practical value. For example, when discussing an important skill, you can explain where it shows up in daily life and how it changes outcomes. That makes the answer complete, clear, and easy to remember.";
+}
+
+function buildPrepAnswer(topicTitle?: string): string {
+  const prompt = stripPromptPrefix(topicTitle)?.toLowerCase() ?? "";
+
+  if (prompt.includes("ai") && prompt.includes("school")) {
+    return "Yes, AI should be a core part of school education, but it should be taught as a thinking tool, not a shortcut. Students will live in a world where AI is part of work, research, and problem-solving, so schools should teach them how to use it responsibly. For example, a student can use AI to compare ideas, check assumptions, or get feedback on writing, while still being expected to explain their own reasoning. That is why AI belongs in education: it prepares students for the real world while strengthening, not replacing, their thinking.";
+  }
+
+  if (prompt.includes("remote work")) {
+    return "I believe remote work is better for many roles because it gives people more control over their focus and energy. When people avoid unnecessary commuting and interruptions, they can often do deeper work and manage their day more effectively. For example, a developer or writer may produce better results from a quiet home setup than from a noisy office. So overall, remote work is better when teams have clear communication, trust, and measurable outcomes.";
+  }
+
+  if (prompt.includes("four-day")) {
+    return "Yes, a four-day workweek can improve productivity if teams use it to focus on outcomes instead of hours. A shorter week forces companies to remove low-value meetings, clarify priorities, and protect deep work. For example, a team that cuts status meetings and plans work more carefully may finish the same amount in fewer days with less burnout. That is why a four-day week can work, but only when the culture values focus and accountability.";
+  }
+
+  return "I believe the stronger position is to support the idea, as long as it is used with clear boundaries. The reason is that good tools improve results when people use them thoughtfully instead of blindly. For example, in a school or workplace setting, a tool can save time, create feedback, and help people compare options, but the person still needs to make the final judgment. So overall, the idea is valuable when it supports better thinking rather than replacing it.";
+}
+
+function buildStarAnswer(topicTitle?: string): string {
+  const prompt = stripPromptPrefix(topicTitle)?.toLowerCase() ?? "";
+
+  if (prompt.includes("conflict")) {
+    return "In a previous team project, two teammates disagreed strongly about the direction of a launch plan. My task was to keep the project moving without making either person feel ignored. I spoke to each person separately, clarified the real concern behind their position, and then brought the group back to agree on one decision criteria: what would reduce risk for the customer. As a result, we chose a clearer plan, finished the launch on time, and the team worked together more calmly after that.";
+  }
+
+  if (prompt.includes("failed")) {
+    return "Early in a project, I failed to communicate a delay quickly enough because I thought I could fix it before anyone noticed. My responsibility was to keep stakeholders informed, not just solve the problem alone. Once I realized the impact, I updated everyone honestly, explained the cause, and created a weekly checkpoint so risks were visible earlier. As a result, the project recovered, and I learned that ownership means communicating early, especially when the news is uncomfortable.";
+  }
+
+  if (prompt.includes("ownership")) {
+    return "During a high-pressure deadline, our team discovered a major issue close to delivery. My task was to help stabilize the work and keep everyone focused. I took ownership of the issue list, grouped the problems by urgency, assigned clear owners, and checked progress twice a day until the release was stable. As a result, we delivered the most important parts on time and avoided confusion because everyone knew exactly what to do next.";
+  }
+
+  return "In a previous project, I faced a situation where the team needed clearer direction under pressure. My task was to help organize the work and make sure the most important priorities were handled first. I clarified the goal, broke the work into smaller steps, communicated owners, and followed up regularly until the issue was resolved. As a result, the team moved faster, avoided duplicated effort, and delivered a stronger outcome.";
+}
+
+function buildIdealAnswer(framework: FrameworkKey, topicTitle?: string): string {
+  if (framework === "CARE") return buildCareAnswer(topicTitle);
+  if (framework === "PREP") return buildPrepAnswer(topicTitle);
+  return buildStarAnswer(topicTitle);
+}
+
+export function evaluateHeuristically(transcript: string, framework: FrameworkKey, topicTitle?: string): EvaluationResult {
   const structuralScores =
     framework === "CARE" ? careScores(transcript) : framework === "PREP" ? prepScores(transcript) : starScores(transcript);
   const communicationScores = buildCommunicationScores(transcript);
@@ -180,7 +237,7 @@ export function evaluateHeuristically(transcript: string, framework: FrameworkKe
       "Use shorter sentences and clearer transitions between framework steps.",
       "End with a stronger final takeaway instead of trailing off."
     ],
-    ideal_answer: buildIdealAnswer(framework),
+    ideal_answer: buildIdealAnswer(framework, topicTitle),
     transcript
   };
 }

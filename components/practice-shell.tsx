@@ -246,6 +246,7 @@ export function PracticeShell() {
         body: JSON.stringify({
           guestKey,
           topicId: topic.id,
+          topicTitle: topic.title,
           framework: topic.framework,
           transcript
         })

@@ -33,11 +33,12 @@ const evaluationSchema = z.object({
 
 export async function evaluateWithOpenAI(
   transcript: string,
-  framework: FrameworkKey
+  framework: FrameworkKey,
+  topicTitle?: string
 ): Promise<EvaluationResult> {
   const apiKey = process.env.OPENAI_API_KEY;
   if (!apiKey) {
-    return evaluateHeuristically(transcript, framework);
+    return evaluateHeuristically(transcript, framework, topicTitle);
   }
 
   const client = new OpenAI({ apiKey });
@@ -57,13 +58,16 @@ export async function evaluateWithOpenAI(
             `Its components are: ${definition.components.map((component) => component.label).join(", ")}.`,
             "Score each structural component from 1 to 10.",
             "Also score clarity, confidence, pacing, and filler_words from 1 to 10.",
-            "List missing components, three practical coaching tips, and provide an ideal rewritten answer using the same framework."
+            "List missing components and three practical coaching tips.",
+            "The ideal_answer must be the actual 10/10 spoken answer to the prompt, not an outline, instruction, rubric, or explanation of the framework.",
+            "Write ideal_answer as a concise ready-to-say response using the selected framework."
           ].join(" ")
         },
         {
           role: "user",
           content: JSON.stringify({
             framework,
+            topicTitle,
             transcript
           })
         }
@@ -78,6 +82,6 @@ export async function evaluateWithOpenAI(
     const parsed = evaluationSchema.parse(JSON.parse(content));
     return parsed;
   } catch {
-    return evaluateHeuristically(transcript, framework);
+    return evaluateHeuristically(transcript, framework, topicTitle);
   }
 }

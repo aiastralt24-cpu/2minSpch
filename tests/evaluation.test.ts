@@ -35,4 +35,15 @@ describe("heuristic evaluation", () => {
     expect(action?.score).toBeGreaterThanOrEqual(7);
     expect(resultScore?.score).toBeGreaterThanOrEqual(7);
   });
+
+  it("returns an actual ideal answer for the topic, not a framework outline", () => {
+    const result = evaluateHeuristically(
+      "AI should be used in schools because students will need it in the future.",
+      "PREP",
+      "Should AI be a core part of school education?"
+    );
+
+    expect(result.ideal_answer).toContain("AI should be a core part of school education");
+    expect(result.ideal_answer).not.toContain("PREP outline");
+  });
 });
