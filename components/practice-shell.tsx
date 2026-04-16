@@ -73,21 +73,47 @@ const difficultyOptions: {
   value: Difficulty;
   title: string;
   description: string;
+  thinkingSeconds: number;
 }[] = [
   {
     value: "easy",
     title: "Easy",
-    description: "Warm up with a simple prompt."
+    description: "Warm up with a simple prompt.",
+    thinkingSeconds: 120
   },
   {
     value: "medium",
     title: "Medium",
-    description: "Balanced daily practice."
+    description: "Balanced daily practice.",
+    thinkingSeconds: 60
   },
   {
     value: "hard",
     title: "Hard",
-    description: "Push your thinking."
+    description: "Push your thinking.",
+    thinkingSeconds: 30
+  }
+];
+
+const thinkingTimeOptions: {
+  value: number;
+  title: string;
+  description: string;
+}[] = [
+  {
+    value: 30,
+    title: "30 sec",
+    description: "Advanced, quick thinking."
+  },
+  {
+    value: 60,
+    title: "1 min",
+    description: "Moderate daily practice."
+  },
+  {
+    value: 120,
+    title: "2 min",
+    description: "More time to plan."
   }
 ];
 
@@ -121,6 +147,7 @@ export function PracticeShell() {
   const [profileId, setProfileId] = useState<string | null>(null);
   const [mode, setMode] = useState<PracticeMode>("auto");
   const [difficulty, setDifficulty] = useState<Difficulty>("medium");
+  const [thinkingSeconds, setThinkingSeconds] = useState(60);
   const [frameworkOverride, setFrameworkOverride] = useState<FrameworkKey>("CARE");
   const [topic, setTopic] = useState<Topic | null>(null);
   const [transcript, setTranscript] = useState("");
@@ -147,6 +174,12 @@ export function PracticeShell() {
 
     return FRAMEWORK_DEFINITIONS[frameworkOverride];
   }, [frameworkOverride, topic]);
+
+  function handleDifficultyChange(nextDifficulty: Difficulty) {
+    setDifficulty(nextDifficulty);
+    const matchingDifficulty = difficultyOptions.find((option) => option.value === nextDifficulty);
+    setThinkingSeconds(matchingDifficulty?.thinkingSeconds ?? 60);
+  }
 
   async function generateTopic() {
     setIsLoadingTopic(true);
@@ -354,7 +387,7 @@ export function PracticeShell() {
             <div className="setup-header">
               <span className="eyebrow">Choose your round</span>
               <h2>What do you want to practice?</h2>
-              <p className="muted">Choose a speaking goal, choose the challenge level, then get your prompt.</p>
+              <p className="muted">Choose the kind of practice, how hard it should feel, and how long you want to think.</p>
             </div>
 
             <div className="guided-setup">
@@ -389,7 +422,27 @@ export function PracticeShell() {
                       key={option.value}
                       type="button"
                       className={`choice-chip ${difficulty === option.value ? "choice-chip-active" : ""}`}
-                      onClick={() => setDifficulty(option.value)}
+                      onClick={() => handleDifficultyChange(option.value)}
+                    >
+                      <strong>{option.title}</strong>
+                      <span>{option.description}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="choice-section">
+                <div>
+                  <span className="choice-kicker">3</span>
+                  <h3>Think for...</h3>
+                </div>
+                <div className="choice-grid difficulty-choice-grid">
+                  {thinkingTimeOptions.map((option) => (
+                    <button
+                      key={option.value}
+                      type="button"
+                      className={`choice-chip ${thinkingSeconds === option.value ? "choice-chip-active" : ""}`}
+                      onClick={() => setThinkingSeconds(option.value)}
                     >
                       <strong>{option.title}</strong>
                       <span>{option.description}</span>
@@ -401,7 +454,7 @@ export function PracticeShell() {
               {mode === "manual_framework" ? (
                 <div className="choice-section">
                   <div>
-                    <span className="choice-kicker">3</span>
+                    <span className="choice-kicker">4</span>
                     <h3>Use this structure</h3>
                   </div>
                   <div className="choice-grid difficulty-choice-grid">
@@ -421,7 +474,7 @@ export function PracticeShell() {
               ) : null}
             </div>
 
-            {error ? <p className="muted">{error}</p> : <p className="footer-note">Not sure? Keep “Pick for me” and Medium.</p>}
+            {error ? <p className="muted">{error}</p> : <p className="footer-note">Not sure? Keep “Pick for me”, Medium, and 1 min.</p>}
             <div className="sticky-action-bar setup-action-bar">
               <button className="button button-primary" onClick={generateTopic} disabled={isLoadingTopic}>
                 {isLoadingTopic ? "Getting prompt..." : "Get prompt"}
@@ -433,7 +486,7 @@ export function PracticeShell() {
         {topic && stage === "prompt" ? (
           <div className="stack">
             <TopicPromptCard topic={topic} animate onAnimationComplete={() => setPromptRevealComplete(true)}>
-              <ThinkingTimer seconds={30} isActive={promptRevealComplete} compact />
+              <ThinkingTimer seconds={thinkingSeconds} isActive={promptRevealComplete} compact />
             </TopicPromptCard>
             <details className="glass-panel detail-panel">
               <summary className="detail-summary">
