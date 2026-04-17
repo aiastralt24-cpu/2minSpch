@@ -1,24 +1,6 @@
 "use client";
 
-import { startTransition, useEffect, useRef, useState } from "react";
-
-declare global {
-  interface Window {
-    webkitSpeechRecognition?: new () => {
-      continuous: boolean;
-      interimResults: boolean;
-      lang: string;
-      onresult: ((event: {
-        results: ArrayLike<ArrayLike<{ transcript: string }>>;
-      }) => void) | null;
-      onerror: (() => void) | null;
-      onend: (() => void) | null;
-      start: () => void;
-      stop: () => void;
-    };
-    SpeechRecognition?: Window["webkitSpeechRecognition"];
-  }
-}
+import { useEffect, useRef, useState } from "react";
 
 export function RecordingPanel({
   transcript,
@@ -28,84 +10,131 @@ export function RecordingPanel({
   setTranscript: (value: string) => void;
 }) {
   const [isRecording, setIsRecording] = useState(false);
-  const [secondsLeft, setSecondsLeft] = useState(60);
-  const recognitionRef = useRef<InstanceType<NonNullable<typeof window.webkitSpeechRecognition>> | null>(null);
+  const [isTranscribing, setIsTranscribing] = useState(false);
+  const [secondsElapsed, setSecondsElapsed] = useState(0);
+  const [message, setMessage] = useState("");
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const streamRef = useRef<MediaStream | null>(null);
+  const chunksRef = useRef<BlobPart[]>([]);
 
   useEffect(() => {
     if (!isRecording) {
-      setSecondsLeft(60);
       return;
     }
 
     const interval = window.setInterval(() => {
-      setSecondsLeft((current) => {
-        if (current <= 1) {
-          window.clearInterval(interval);
-          recognitionRef.current?.stop();
-          setIsRecording(false);
-          return 0;
-        }
-        return current - 1;
-      });
+      setSecondsElapsed((current) => current + 1);
     }, 1000);
 
     return () => window.clearInterval(interval);
   }, [isRecording]);
 
-  function toggleRecording() {
-    const SpeechRecognition = window.SpeechRecognition ?? window.webkitSpeechRecognition;
-    if (!SpeechRecognition) {
-      startTransition(() => {
-        setTranscript(
-          transcript ||
-            "Speech recognition is unavailable in this browser. Type your response here, then run evaluation."
-        );
+  useEffect(() => {
+    return () => {
+      streamRef.current?.getTracks().forEach((track) => track.stop());
+    };
+  }, []);
+
+  async function transcribeAudio(blob: Blob) {
+    setIsTranscribing(true);
+    setMessage("Transcribing your answer...");
+
+    try {
+      const formData = new FormData();
+      formData.append("audio", blob, `practice-answer-${Date.now()}.webm`);
+
+      const response = await fetch("/api/transcribe", {
+        method: "POST",
+        body: formData
       });
+
+      const data = (await response.json()) as { transcript?: string; message?: string };
+      if (!response.ok || !data.transcript) {
+        throw new Error(data.message ?? "We could not transcribe that recording.");
+      }
+
+      setTranscript(data.transcript.trim());
+      setMessage("Transcript ready. Review it below before scoring.");
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "Transcription failed. Type your answer below instead.");
+    } finally {
+      setIsTranscribing(false);
+    }
+  }
+
+  async function startRecording() {
+    setMessage("");
+    setSecondsElapsed(0);
+
+    if (!navigator.mediaDevices?.getUserMedia || typeof MediaRecorder === "undefined") {
+      setMessage("Recording is not available in this browser. Type your answer below instead.");
       return;
     }
 
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      streamRef.current = stream;
+      chunksRef.current = [];
+
+      const recorder = new MediaRecorder(stream);
+      recorder.ondataavailable = (event) => {
+        if (event.data.size > 0) {
+          chunksRef.current.push(event.data);
+        }
+      };
+      recorder.onstop = () => {
+        stream.getTracks().forEach((track) => track.stop());
+        streamRef.current = null;
+        const blob = new Blob(chunksRef.current, { type: recorder.mimeType || "audio/webm" });
+        if (blob.size > 0) {
+          void transcribeAudio(blob);
+        }
+      };
+
+      mediaRecorderRef.current = recorder;
+      recorder.start();
+      setIsRecording(true);
+    } catch {
+      setMessage("Microphone access was blocked. Allow the microphone or type your answer below.");
+    }
+  }
+
+  function stopRecording() {
+    mediaRecorderRef.current?.stop();
+    mediaRecorderRef.current = null;
+    setIsRecording(false);
+  }
+
+  function handlePrimaryAction() {
     if (isRecording) {
-      recognitionRef.current?.stop();
-      setIsRecording(false);
+      stopRecording();
       return;
     }
 
-    const recognition = new SpeechRecognition();
-    recognition.continuous = true;
-    recognition.interimResults = true;
-    recognition.lang = "en-US";
-    recognition.onresult = (event) => {
-      const nextTranscript = Array.from(event.results)
-        .map((result) => result[0]?.transcript ?? "")
-        .join(" ");
-
-      startTransition(() => {
-        setTranscript(nextTranscript.trim());
-      });
-    };
-    recognition.onerror = () => {
-      setIsRecording(false);
-    };
-    recognition.onend = () => {
-      setIsRecording(false);
-    };
-
-    recognitionRef.current = recognition;
-    recognition.start();
-    setIsRecording(true);
+    void startRecording();
   }
 
   return (
-    <section className="glass-panel">
+    <section className="glass-panel recording-card">
       <span className="eyebrow">Say your answer</span>
       <div className="score-footer">
-        <strong>{isRecording ? "Listening now" : "Ready when you are"}</strong>
-        <span className="pill">{secondsLeft}s</span>
+        <strong>{isRecording ? "Recording..." : isTranscribing ? "Working on transcript..." : "Ready when you are"}</strong>
+        <span className="pill">{secondsElapsed}s</span>
       </div>
-      <p className="muted">Use voice capture if your browser supports it, or type your answer below.</p>
-      <button className={`button ${isRecording ? "button-secondary" : "button-primary"}`} onClick={toggleRecording}>
-        {isRecording ? "Stop speaking" : "Start speaking"}
-      </button>
+      <p className="muted">
+        Record your answer, then review the transcript before scoring. If recording fails, type your answer below.
+      </p>
+      <div className="recording-actions">
+        <button
+          className={`button ${isRecording ? "button-secondary" : "button-primary"}`}
+          disabled={isTranscribing}
+          onClick={handlePrimaryAction}
+        >
+          {isRecording ? "Stop and transcribe" : isTranscribing ? "Transcribing..." : "Start recording"}
+        </button>
+        {transcript ? <span className="pill">Transcript ready</span> : null}
+      </div>
+      {message ? <p className="recording-message">{message}</p> : null}
     </section>
   );
 }

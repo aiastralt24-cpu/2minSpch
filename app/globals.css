@@ -257,6 +257,12 @@ button {
   border: 1px solid rgba(31, 29, 25, 0.1);
 }
 
+.button:disabled {
+  cursor: not-allowed;
+  opacity: 0.62;
+  transform: none;
+}
+
 .poster {
   background:
     linear-gradient(140deg, rgba(255, 252, 245, 0.92), rgba(244, 228, 212, 0.86)),
@@ -617,6 +623,24 @@ button {
   display: grid;
   grid-template-columns: 0.9fr 1.1fr;
   gap: 1rem;
+}
+
+.recording-card {
+  display: grid;
+  gap: 1rem;
+}
+
+.recording-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  flex-wrap: wrap;
+}
+
+.recording-message {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.5;
 }
 
 .sharp-feedback-card {
