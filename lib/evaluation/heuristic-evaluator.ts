@@ -3,6 +3,7 @@ import {
   CommunicationScore,
   EvaluationResult,
   FrameworkKey,
+  PersuasionScore,
   StructuralScore
 } from "@/lib/types";
 import { average, clampScore, containsAny, excerpt, sentenceCount } from "@/lib/utils";
@@ -44,6 +45,75 @@ function buildCommunicationScores(transcript: string): CommunicationScore[] {
       label: "Filler Words",
       score: fillerWords,
       feedback: fillerWords >= 7 ? "Few distracting fillers." : "Cut filler words to sound more polished."
+    }
+  ];
+}
+
+function buildPersuasionScores(transcript: string): PersuasionScore[] {
+  const lower = transcript.toLowerCase();
+  const ethosSignals = [
+    "in my experience",
+    "my role",
+    "i was responsible",
+    "i learned",
+    "i handled",
+    "i led",
+    "i believe",
+    "balanced",
+    "responsibly"
+  ];
+  const pathosSignals = [
+    "people",
+    "students",
+    "customer",
+    "team",
+    "parents",
+    "stress",
+    "confidence",
+    "trust",
+    "feel",
+    "impact",
+    "human"
+  ];
+  const logosSignals = [
+    "because",
+    "the reason",
+    "for example",
+    "as a result",
+    "therefore",
+    "so overall",
+    "data",
+    "evidence",
+    "%",
+    "outcome"
+  ];
+
+  const ethosHits = ethosSignals.filter((signal) => lower.includes(signal)).length;
+  const pathosHits = pathosSignals.filter((signal) => lower.includes(signal)).length;
+  const logosHits = logosSignals.filter((signal) => lower.includes(signal)).length;
+
+  const ethos = clampScore(4 + ethosHits * 1.4);
+  const pathos = clampScore(4 + pathosHits * 1.2);
+  const logos = clampScore(4 + logosHits * 1.3);
+
+  return [
+    {
+      key: "ethos",
+      label: "Credible",
+      score: ethos,
+      feedback: ethos >= 7 ? "The answer feels grounded and trustworthy." : "Add credibility with experience, ownership, or balanced wording."
+    },
+    {
+      key: "pathos",
+      label: "Human",
+      score: pathos,
+      feedback: pathos >= 7 ? "The listener can feel why it matters." : "Add the human impact so the answer feels more relatable."
+    },
+    {
+      key: "logos",
+      label: "Logical",
+      score: logos,
+      feedback: logos >= 7 ? "The reasoning is clear and easy to follow." : "Add clearer cause-effect logic, proof, or an example."
     }
   ];
 }
@@ -218,6 +288,7 @@ export function evaluateHeuristically(transcript: string, framework: FrameworkKe
   const structuralScores =
     framework === "CARE" ? careScores(transcript) : framework === "PREP" ? prepScores(transcript) : starScores(transcript);
   const communicationScores = buildCommunicationScores(transcript);
+  const persuasionScores = buildPersuasionScores(transcript);
   const missingComponents = structuralScores.filter((score) => score.score <= 5).map((score) => score.label);
   const overallScore = average([
     ...structuralScores.map((score) => score.score),
@@ -229,6 +300,7 @@ export function evaluateHeuristically(transcript: string, framework: FrameworkKe
     overall_score: overallScore,
     structural_scores: structuralScores,
     communication_scores: communicationScores,
+    persuasion_scores: persuasionScores,
     missing_components: missingComponents,
     improvement_tips: [
       missingComponents.length > 0

@@ -9,6 +9,7 @@ import { FrameworkBreakdown } from "@/components/framework-breakdown";
 import { FrameworkCard } from "@/components/framework-card";
 import { IdealAnswerPanel } from "@/components/ideal-answer-panel";
 import { MainTakeawayCard } from "@/components/main-takeaway-card";
+import { PersuasionCheckCard } from "@/components/persuasion-check-card";
 import { RecordingPanel } from "@/components/recording-panel";
 import { ThinkingTimer } from "@/components/thinking-timer";
 import { TopicPromptCard } from "@/components/topic-prompt-card";
@@ -536,6 +537,7 @@ export function PracticeShell() {
             <div className="result-layout">
               <div className="stack">
                 <MainTakeawayCard result={result} />
+                <PersuasionCheckCard result={result} />
                 <FrameworkBreakdown result={result} />
                 <CommunicationScoreCard result={result} />
               </div>

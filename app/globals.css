@@ -647,6 +647,21 @@ button {
   color: #5c3525;
 }
 
+.persuasion-card {
+  display: grid;
+  gap: 1rem;
+}
+
+.persuasion-row {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.persuasion-row .muted {
+  margin: 0;
+  font-size: 0.95rem;
+}
+
 .ideal-answer-card {
   position: relative;
   overflow: hidden;
@@ -683,6 +698,46 @@ button {
   color: rgba(255, 255, 255, 0.9);
   font-size: 1.08rem;
   line-height: 1.65;
+}
+
+.answer-legend {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+}
+
+.answer-legend span,
+.answer-highlight {
+  border-radius: 999px;
+  padding: 0.08rem 0.38rem;
+}
+
+.answer-legend span {
+  font-size: 0.82rem;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  color: rgba(255, 255, 255, 0.84);
+}
+
+.answer-highlight {
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+}
+
+.answer-highlight-ethos,
+.answer-legend-ethos {
+  background: rgba(240, 177, 137, 0.18);
+}
+
+.answer-highlight-pathos,
+.answer-legend-pathos {
+  background: rgba(255, 255, 255, 0.14);
+}
+
+.answer-highlight-logos,
+.answer-legend-logos {
+  background: rgba(154, 207, 166, 0.18);
 }
 
 .detail-panel {

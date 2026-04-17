@@ -20,11 +20,19 @@ const communicationScoreSchema = z.object({
   feedback: z.string()
 });
 
+const persuasionScoreSchema = z.object({
+  key: z.enum(["ethos", "pathos", "logos"]),
+  label: z.string(),
+  score: z.number(),
+  feedback: z.string()
+});
+
 const evaluationSchema = z.object({
   framework: z.enum(["CARE", "PREP", "STAR"]),
   overall_score: z.number(),
   structural_scores: z.array(structuralScoreSchema),
   communication_scores: z.array(communicationScoreSchema),
+  persuasion_scores: z.array(persuasionScoreSchema),
   missing_components: z.array(z.string()),
   improvement_tips: z.array(z.string()),
   ideal_answer: z.string(),
@@ -58,6 +66,9 @@ export async function evaluateWithOpenAI(
             `Its components are: ${definition.components.map((component) => component.label).join(", ")}.`,
             "Score each structural component from 1 to 10.",
             "Also score clarity, confidence, pacing, and filler_words from 1 to 10.",
+            "Also score persuasion_scores from 1 to 10 for ethos, pathos, and logos.",
+            "Use labels Credible for ethos, Human for pathos, and Logical for logos.",
+            "Each persuasion score needs one short practical feedback sentence.",
             "List missing components and three practical coaching tips.",
             "The ideal_answer must be the actual 10/10 spoken answer to the prompt, not an outline, instruction, rubric, or explanation of the framework.",
             "Write ideal_answer as a concise ready-to-say response using the selected framework."

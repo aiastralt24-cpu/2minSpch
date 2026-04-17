@@ -19,6 +19,8 @@ export type CommunicationMetricKey =
   | "pacing"
   | "filler_words";
 
+export type PersuasionMetricKey = "ethos" | "pathos" | "logos";
+
 export interface FrameworkDefinition {
   key: FrameworkKey;
   name: string;
@@ -57,11 +59,19 @@ export interface CommunicationScore {
   feedback: string;
 }
 
+export interface PersuasionScore {
+  key: PersuasionMetricKey;
+  label: string;
+  score: number;
+  feedback: string;
+}
+
 export interface EvaluationResult {
   framework: FrameworkKey;
   overall_score: number;
   structural_scores: StructuralScore[];
   communication_scores: CommunicationScore[];
+  persuasion_scores?: PersuasionScore[];
   missing_components: string[];
   improvement_tips: string[];
   ideal_answer: string;

@@ -25,6 +25,14 @@ const evaluationSchema = z.object({
       feedback: z.string()
     })
   ),
+  persuasion_scores: z.array(
+    z.object({
+      key: z.enum(["ethos", "pathos", "logos"]),
+      label: z.string(),
+      score: z.number(),
+      feedback: z.string()
+    })
+  ).optional(),
   missing_components: z.array(z.string()),
   improvement_tips: z.array(z.string()),
   ideal_answer: z.string(),
