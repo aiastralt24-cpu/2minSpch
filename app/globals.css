@@ -812,10 +812,26 @@ button {
 .auth-submit-row {
   margin-top: 1rem;
   display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  flex-wrap: wrap;
 }
 
 .auth-submit-row .button {
   min-width: 11rem;
+}
+
+.link-button {
+  border: 0;
+  background: transparent;
+  color: var(--muted);
+  padding: 0.6rem 0;
+  text-decoration: underline;
+  text-underline-offset: 0.18em;
+}
+
+.link-button:hover {
+  color: var(--text);
 }
 
 .auth-message {

@@ -206,6 +206,56 @@ export async function registerAccount(input: { name: string; email: string; pass
   };
 }
 
+export async function requestPasswordReset(email: string) {
+  const supabase = getSupabaseBrowserClient();
+  if (!supabase) {
+    return {
+      ok: false as const,
+      message: "Password reset is available after Supabase Auth is configured."
+    };
+  }
+
+  const redirectTo = typeof window !== "undefined" ? `${window.location.origin}/sign-in` : undefined;
+  const { error } = await supabase.auth.resetPasswordForEmail(email.trim().toLowerCase(), {
+    redirectTo
+  });
+
+  if (error) {
+    return {
+      ok: false as const,
+      message: error.message
+    };
+  }
+
+  return {
+    ok: true as const,
+    message: "Password reset link sent. Check your email."
+  };
+}
+
+export async function updateAccountPassword(password: string) {
+  const supabase = getSupabaseBrowserClient();
+  if (!supabase) {
+    return {
+      ok: false as const,
+      message: "Password update is available after Supabase Auth is configured."
+    };
+  }
+
+  const { error } = await supabase.auth.updateUser({ password });
+  if (error) {
+    return {
+      ok: false as const,
+      message: error.message
+    };
+  }
+
+  return {
+    ok: true as const,
+    message: "Password updated. You can continue."
+  };
+}
+
 export function registerLocalAccount(input: { name: string; email: string; password: string }) {
   const accounts = readAccounts();
   const normalizedEmail = input.email.trim().toLowerCase();

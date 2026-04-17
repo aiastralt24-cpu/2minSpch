@@ -7,12 +7,14 @@ import { useEffect, useState } from "react";
 import {
   getAuthenticatedProfile,
   registerAccount,
+  requestPasswordReset,
   signInAccount,
-  signOutAccount
+  signOutAccount,
+  updateAccountPassword
 } from "@/lib/client/progress-store";
 import { LocalUserProfile } from "@/lib/types";
 
-type AuthMode = "sign_in" | "create_account";
+type AuthMode = "sign_in" | "create_account" | "forgot_password" | "update_password";
 
 export default function SignInPage() {
   const router = useRouter();
@@ -23,6 +25,7 @@ export default function SignInPage() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
   const [message, setMessage] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -38,12 +41,18 @@ export default function SignInPage() {
     const params = new URLSearchParams(window.location.search);
     setNextPath(params.get("next") || "/dashboard");
     setReason(params.get("reason") || "");
+
+    if (window.location.hash.includes("type=recovery") || params.get("type") === "recovery") {
+      setAuthMode("update_password");
+      setMessage("Enter a new password for your account.");
+    }
   }, []);
 
   function resetCreateAccountFlow() {
     setName("");
     setEmail("");
     setPassword("");
+    setNewPassword("");
     setMessage("");
     setIsSubmitting(false);
   }
@@ -97,6 +106,38 @@ export default function SignInPage() {
     resetCreateAccountFlow();
     setIsSubmitting(false);
     router.push(nextPath);
+  }
+
+  async function handlePasswordResetRequest() {
+    setMessage("");
+    if (!email.trim()) {
+      setMessage("Enter your email first.");
+      return;
+    }
+
+    setIsSubmitting(true);
+    const result = await requestPasswordReset(email);
+    setMessage(result.message);
+    setIsSubmitting(false);
+  }
+
+  async function handleUpdatePassword() {
+    setMessage("");
+    if (!newPassword.trim()) {
+      setMessage("Enter your new password.");
+      return;
+    }
+
+    setIsSubmitting(true);
+    const result = await updateAccountPassword(newPassword);
+    setMessage(result.message);
+    setIsSubmitting(false);
+
+    if (result.ok) {
+      setPassword("");
+      setNewPassword("");
+      setAuthMode("sign_in");
+    }
   }
 
   async function handleSignOut() {
@@ -194,9 +235,19 @@ export default function SignInPage() {
                   <button className="button button-primary" onClick={handleSignIn} disabled={isSubmitting}>
                     {isSubmitting ? "Signing in..." : "Sign in"}
                   </button>
+                  <button
+                    className="link-button"
+                    type="button"
+                    onClick={() => {
+                      setAuthMode("forgot_password");
+                      setMessage("");
+                    }}
+                  >
+                    Forgot password?
+                  </button>
                 </div>
               </>
-            ) : (
+            ) : authMode === "create_account" ? (
               <>
                 <h1 className="auth-title">Create your account</h1>
                 <p className="auth-subtext">
@@ -247,6 +298,65 @@ export default function SignInPage() {
                   <div className="auth-submit-row">
                     <button className="button button-primary" onClick={handleCreateAccount} disabled={isSubmitting}>
                       {isSubmitting ? "Creating account..." : "Create account"}
+                    </button>
+                  </div>
+                </div>
+
+                {message ? <p className="auth-message">{message}</p> : null}
+              </>
+            ) : authMode === "forgot_password" ? (
+              <>
+                <h1 className="auth-title">Reset password</h1>
+                <p className="auth-subtext">Enter your email and we’ll send a reset link.</p>
+
+                <div className="auth-form-grid">
+                  <div className="field-card">
+                    <label className="label" htmlFor="reset-email">
+                      Email
+                    </label>
+                    <input
+                      id="reset-email"
+                      className="input"
+                      value={email}
+                      onChange={(event) => setEmail(event.target.value)}
+                      placeholder="name@example.com"
+                      type="email"
+                    />
+                  </div>
+                  <div className="auth-submit-row">
+                    <button className="button button-primary" onClick={handlePasswordResetRequest} disabled={isSubmitting}>
+                      {isSubmitting ? "Sending..." : "Send reset link"}
+                    </button>
+                    <button className="button button-secondary" type="button" onClick={() => setAuthMode("sign_in")}>
+                      Back to sign in
+                    </button>
+                  </div>
+                </div>
+
+                {message ? <p className="auth-message">{message}</p> : null}
+              </>
+            ) : (
+              <>
+                <h1 className="auth-title">Set new password</h1>
+                <p className="auth-subtext">Choose a new password for your account.</p>
+
+                <div className="auth-form-grid">
+                  <div className="field-card">
+                    <label className="label" htmlFor="new-password">
+                      New password
+                    </label>
+                    <input
+                      id="new-password"
+                      className="input"
+                      value={newPassword}
+                      onChange={(event) => setNewPassword(event.target.value)}
+                      placeholder="Enter a new password"
+                      type="password"
+                    />
+                  </div>
+                  <div className="auth-submit-row">
+                    <button className="button button-primary" onClick={handleUpdatePassword} disabled={isSubmitting}>
+                      {isSubmitting ? "Updating..." : "Update password"}
                     </button>
                   </div>
                 </div>
